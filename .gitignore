@@ -1,0 +1,9 @@
+.venv
+inventory.yml
+tmp-inventory.yml
+tmp.yaml
+password
+*tmp*
+*.backup
+ donotpush
+ 
