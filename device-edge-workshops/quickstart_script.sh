@@ -26,15 +26,18 @@ fi
 
 # Download the file using curl
 if [ ! -f $HOME/aap.tar.gz ];then 
-  export AAP_LINK="https://access.cdn.redhat.com/content/origin/files/sha256/0d/0dd214529a7754046317248d68fbe4f92a5c1562cc9297845ba956e0640fad2b/ansible-automation-platform-setup-2.4-4.tar.gz?user=a7c489a1be9a5add61634c6001ddce63&_auth_=1705020725_fe369a800d632c0e9d57b643c687ac87"
+
   curl -o aap.tar.gz "${AAP_LINK}" 
 fi
 
-
-if [ ! -f $HOME/pull-secret.json ];then 
-  echo "Please place your pull-secret.json file in your home directory"
+# if  aap.tar.gz file size is 0 delete it and exit the script
+if [ ! -s $HOME/aap.tar.gz ];then 
+  rm $HOME/aap.tar.gz
+  echo "Please download your aap.tar.gz file from https://access.redhat.com/downloads/content/480/ver=2.4/rhel---9/2.4/x86_64/product-software"
   exit 1
-fi 
+fi
+
+
 
 # In order to use Automation controller you need to have a valid subscription via a manifest.zip file. To retrieve your manifest.zip file you need to download it from access.redhat.com.
 # You have the steps in the Ansible Platform Documentation
