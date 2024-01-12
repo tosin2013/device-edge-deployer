@@ -26,7 +26,7 @@ fi
 
 # Download the file using curl
 if [ ! -f $HOME/aap.tar.gz ];then 
-
+  cd $HOME
   curl -o aap.tar.gz "${AAP_LINK}" 
 fi
 
@@ -118,8 +118,8 @@ all:
             edge-manager-local:
               ansible_host: 192.168.122.65  # Replace with the IP address of your local server
               ansible_user: cloud-user  # Replace with the appropriate username
-              ansible_password: r3dh@t123  # Replace with the ansible user's password
-              ansible_become_password: r3dh@t123   # Replace with the become (sudo) password
+              ansible_password: XXXXXX  # Replace with the ansible user's password
+              ansible_become_password: XXXXXXX   # Replace with the become (sudo) password
 
               external_connection: eth0  # Connection name for the external connection
               internal_connection: eth0  # Interface name for the internal lab network
