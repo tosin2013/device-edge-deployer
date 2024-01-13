@@ -1,4 +1,5 @@
 #!/bin/bash
+# https://github.com/redhat-manufacturing/device-edge-workshops/blob/gitops-demo/exercises/rhde_gitops/demo/README.md
 # curl -OL https://gist.githubusercontent.com/tosin2013/ae925297c1a257a1b9ac8157bcc81f31/raw/71a798d427a016bbddcc374f40e9a4e6fd2d3f25/configure-rhel8.x.sh
 # chmod +x configure-rhel8.x.sh
 # ./configure-rhel8.x.sh
@@ -34,6 +35,7 @@ fi
 if [ ! -s $HOME/aap.tar.gz ];then 
   rm $HOME/aap.tar.gz
   echo "Please download your aap.tar.gz file from https://access.redhat.com/downloads/content/480/ver=2.4/rhel---9/2.4/x86_64/product-software"
+  echo "Update your .env file with the correct link and try again"
   exit 1
 fi
 
@@ -51,7 +53,7 @@ if [ ! -f $HOME/manifest.zip ];then
   echo "Please place your manifest.zip file in your home directory"
   exit 1
 else 
-    base64 manifest.zip > base64_platform_manifest.txt
+    base64 $HOME/manifest.zip > base64_platform_manifest.txt || exit $?
 fi
 
 # Install System Packages
@@ -68,44 +70,75 @@ if [[ $result == "ansible-navigator" ]]; then
     exit 1
 fi
 
-echo "podman login -u $QUAY_ROBOT_USER quay.io"
-echo "Please enter your quay.io password"
-podman login -u $QUAY_ROBOT_USER quay.io || exit $?
-
-quay.io/takinosh/simple-http
-
-skopeo copy docker://quay.io/luisarizmendi/2048:v1 docker://quay.io/$QUAY_USER/2048:v1
-skopeo copy docker://quay.io/luisarizmendi/2048:v2 docker://quay.io/$QUAY_USER/2048:v2
-skopeo copy docker://quay.io/luisarizmendi/2048:v3 docker://quay.io/$QUAY_USER/2048:v3
-skopeo copy docker://quay.io/luisarizmendi/2048:prod docker://quay.io/$QUAY_USER/2048:prod
-skopeo copy docker://quay.io/luisarizmendi/simple-http:v1 docker://quay.io/$QUAY_USER/simple-http:v1
-skopeo copy docker://quay.io/luisarizmendi/simple-http:v2 docker://quay.io/$QUAY_USER/simple-http:v2
-skopeo copy docker://quay.io/luisarizmendi/simple-http:prod docker://quay.io/$QUAY_USER/simple-http:prod
 
 
-if [ ! -f $HOME/device-edge-workshops ];then 
-  git clone https://github.com/redhat-manufacturing/device-edge-workshops
-fi 
+read -p "Would you like to pull images from quay.io? (y/n): " pull_images
+
+if [[ $pull_images == "y" ]]; then
+  echo "podman login -u $QUAY_ROBOT_USER quay.io"
+  echo "Please enter your quay.io password"
+  podman login -u $QUAY_ROBOT_USER quay.io || exit $?
+
+  skopeo copy docker://quay.io/luisarizmendi/2048:v1 docker://quay.io/$QUAY_USER/2048:v1
+  skopeo copy docker://quay.io/luisarizmendi/2048:v2 docker://quay.io/$QUAY_USER/2048:v2
+  skopeo copy docker://quay.io/luisarizmendi/2048:v3 docker://quay.io/$QUAY_USER/2048:v3
+  skopeo copy docker://quay.io/luisarizmendi/2048:prod docker://quay.io/$QUAY_USER/2048:prod
+  skopeo copy docker://quay.io/luisarizmendi/simple-http:v1 docker://quay.io/$QUAY_USER/simple-http:v1
+  skopeo copy docker://quay.io/luisarizmendi/simple-http:v2 docker://quay.io/$QUAY_USER/simple-http:v2
+  skopeo copy docker://quay.io/luisarizmendi/simple-http:prod docker://quay.io/$QUAY_USER/simple-http:prod
+fi
+
+if [ ! -d $HOME/device-edge-workshops ]; then
+    cd $HOME
+    git clone https://github.com/redhat-manufacturing/device-edge-workshops.git
+    cd $HOME/device-edge-workshops
+else
+    cd $HOME/device-edge-workshops
+    git pull
+fi
 
 if [ ! -f $HOME/rhde_gitops.yml ];
 then 
-    cp $HOME/device-edge-workshops/provisioner/example-extra-vars/rhde_gitops.yml $HOME/rhde_gitops.yml
+  cp $HOME/device-edge-workshops/provisioner/example-extra-vars/rhde_gitops.yml $HOME/rhde_gitops.yml
 fi 
 
 
-python3 update_config.py  $HOME/rhde_gitops.yml
+# Would you like to update the vars file?
+read -p "Would you like to update the vars file? (y/n): " update_vars
+
+if [[ $update_vars == "y" ]]; then
+  echo "Variable Inputs"
+  echo "----------------"
+  echo EAB_KID: $EAB_KID
+  echo EAB_HMAC_KEY: $EAB_HMAC_KEY
+  echo SLACK_TOKEN: $SLACK_TOKEN
+  echo RH_OFFLINE_TOKEN: $RH_OFFLINE_TOKEN
+  python3 $HOME/device-edge-deployer/device-edge-workshops/update_config.py  $HOME/rhde_gitops.yml
+fi
+
+# if ec2-user does not exist on your local server, create it
+if [ ! -d /home/ec2-user ]; then
+  curl -OL https://gist.githubusercontent.com/tosin2013/385054f345ff7129df6167631156fa2a/raw/b67866c8d0ec220c393ea83d2c7056f33c472e65/configure-sudo-user.sh
+  chmod +x configure-sudo-user.sh
+  ./configure-sudo-user.sh ec2-user 
+fi
 
 cp $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-local.yml $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops.yml
 
 
+#cp $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-external.yml $HOME/device-edge-workshops/provisioner/workshop_vars/rhde-gitops.yml
 
+if [ ! -f $HOME/device-edge-workshops/provisioner/aap.tar.gz ]; then
+  cp $HOME/aap.tar.gz $HOME/device-edge-workshops/provisioner/aap.tar.gz
+fi
 
+# Get primary interface name
+# https://stackoverflow.com/questions/13322485/how-to-get-the-primary-ip-address-of-the-local-machine-on-linux-and-os-x
 
-cp $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-external.yml $HOME/device-edge-workshops/provisioner/workshop_vars/rhde-gitops.yml
-
-
-mv  $HOME/aap.tar.gz $HOME/device-edge-workshops/provisioner/aap.tar.gz
-
+# Dynamically get the IP address of the local server
+LOCAL_IP=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
+# ask for user password to be used for ansible_become_password and ansible_become_password
+read -sp "Please enter your password: " password
 
 cat > $HOME/device-edge-workshops/local-inventory.yml<<EOF
 ---
@@ -116,15 +149,39 @@ all:
         edge_local_management:
           hosts:
             edge-manager-local:
-              ansible_host: 192.168.122.65  # Replace with the IP address of your local server
-              ansible_user: cloud-user  # Replace with the appropriate username
-              ansible_password: XXXXXX  # Replace with the ansible user's password
-              ansible_become_password: XXXXXXX   # Replace with the become (sudo) password
+              ansible_host: ${LOCAL_IP} # Replace with the IP address of your local server
+              ansible_user: ${USER} # Replace with the appropriate username
+              ansible_password: ${password}  # Replace with the ansible user's password
+              ansible_become_password: ${password}   # Replace with the become (sudo) password
 
               external_connection: eth0  # Connection name for the external connection
               internal_connection: eth0  # Interface name for the internal lab network
 
 EOF
 
+
+# Specify the directories
+CERTS_DIR="/home/lab-user/workshop-certs/training.sandbox1190.opentlc.com"
+EDA_DIR="/home/lab-user/workshop-build/eda"
+
+# Create the directories if they don't exist
+if [ ! -d "$CERTS_DIR" ]; then
+    sudo mkdir -p "$CERTS_DIR"
+fi
+
+if [ ! -d "$EDA_DIR" ]; then
+    sudo mkdir -p "$EDA_DIR"
+fi
+
+# Change ownership of the directories to root
+sudo chown -R root:root "$CERTS_DIR"
+sudo chown -R lab-user:lab-user "$EDA_DIR"
+
+# Set permissions of the directory to 0644
+sudo chmod 755 -R  "$EDA_DIR"
+
 cd $HOME/device-edge-workshops/
-sudo -E ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @rhde_gitops.yml -m stdout -vvvv
+echo "ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @rhde_gitops.yml -m stdout -vvvv --become"
+#ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @rhde_gitops.yml -m stdout -vvvv --become
+
+#ansible-navigator run provisioner/teardown_lab.yml --inventory local-inventory.yml --extra-vars @rhde_gitops.yml -m stdout -vvvv --become

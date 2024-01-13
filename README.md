@@ -7,5 +7,5 @@ cd device-edge-deployer
 ```
 
 ```
-chmod +x ./device-edge-workshops/quickstart_script.sh && ./device-edge-workshops/quickstart_script.sh
+$ ./device-edge-workshops/quickstart_script.sh
 ```

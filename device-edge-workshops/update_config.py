@@ -12,11 +12,15 @@ def read_yaml_file(file_path):
     return data
 
 def update_variable(variable_name, current_value):
-    new_value = input(f"Enter a new value for '{Fore.BLUE}{variable_name}{Style.RESET_ALL}' (Press Enter to keep current value '{current_value}'): ")
-    if new_value.strip() != "":
+    new_value = os.environ.get(variable_name)
+    if new_value is not None:
         return new_value
     else:
-        return current_value
+        user_input = input(f"Enter a new value for '{Fore.BLUE}{variable_name}{Style.RESET_ALL}' (Press Enter to keep current value '{current_value}'): ")
+        if user_input.strip() != "":
+            return user_input
+        else:
+            return current_value
 
 def update_variables(data):
     try:
@@ -36,26 +40,6 @@ def update_variables(data):
                 else:
                     print(f"Invalid input for '{key}', keeping current value '{value}'")
 
-    except KeyboardInterrupt:
-        print("\nExiting gracefully.")
-        sys.exit(1)
-
-
-def write_yaml_file(file_path, data):
-    with open(file_path, 'w') as file:
-        yaml.dump(data, file, default_flow_style=False)
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python update_config.py <config_file.yaml>")
-        sys.exit(1)
-
-    file_path = sys.argv[1]
-    
-    try:
-        data = read_yaml_file(file_path)
-        update_variables(data)
-        
         # Prompt for the run_in_aws parameter
         new_run_in_aws = input("Do you want to deploy the lab in AWS (True/False) (Press Enter to keep current value): ")
         if new_run_in_aws.strip().lower() == 'true':
@@ -69,20 +53,46 @@ if __name__ == "__main__":
             # Clear AWS credentials if not deploying in AWS
             data['AWS_ACCESS_KEY_ID'] = ""
             data['AWS_SECRET_ACCESS_KEY'] = ""
-        
+
+        # Write the updated values to the .env file
+        env_file_path = ".env"
+        with open(env_file_path, 'w') as env_file:
+            env_file.write(f"run_in_aws={data['run_in_aws']}\n")
+            env_file.write(f"AWS_ACCESS_KEY_ID={data['AWS_ACCESS_KEY_ID']}\n")
+            env_file.write(f"AWS_SECRET_ACCESS_KEY={data['AWS_SECRET_ACCESS_KEY']}\n")
+
+    except KeyboardInterrupt:
+        print("\nExiting gracefully.")
+        sys.exit(1)
+
+def write_yaml_file(file_path, data):
+    with open(file_path, 'w') as file:
+        yaml.dump(data, file, default_flow_style=False)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python update_config.py <config_file.yaml>")
+        sys.exit(1)
+
+    file_path = sys.argv[1]
+
+    try:
+        data = read_yaml_file(file_path)
+        update_variables(data)
+
         # Automatically read pull_secret and base64_manifest from the home directory
         home_dir = os.path.expanduser("~")
         pull_secret_file = os.path.join(home_dir, "pull-secret.json")
         base64_manifest_file = os.path.join(home_dir, "base64_platform_manifest.txt")
-        
+
         if os.path.exists(pull_secret_file):
             with open(pull_secret_file, 'r') as pull_secret:
                 data['pull_secret'] = pull_secret.read().strip()
-        
+
         if os.path.exists(base64_manifest_file):
             with open(base64_manifest_file, 'r') as base64_manifest:
                 data['base64_manifest'] = base64_manifest.read().strip()
-        
+
         write_yaml_file(file_path, data)
         print(f"Config file '{file_path}' has been updated.")
     except FileNotFoundError:
