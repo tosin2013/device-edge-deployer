@@ -99,6 +99,13 @@ fi
 # Install System Packages
 if [ ! -f /usr/bin/podman ]; then
   ./hack/partial-rpm-packages.sh
+else
+  if [ -f $HOME/.run/containers ]; 
+  then 
+    mkdir -p ~/.run/containers
+    podman system migrate
+    sudo sysctl --system
+  fi 
 fi
 
 # Run the configuration script to setup the bastion host with:
