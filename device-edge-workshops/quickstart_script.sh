@@ -120,7 +120,7 @@ fi
 if [ ! -d /home/ec2-user ]; then
   curl -OL https://gist.githubusercontent.com/tosin2013/385054f345ff7129df6167631156fa2a/raw/b67866c8d0ec220c393ea83d2c7056f33c472e65/configure-sudo-user.sh
   chmod +x configure-sudo-user.sh
-  ./configure-sudo-user.sh ec2-user 
+  sudo ./configure-sudo-user.sh ec2-user 
 fi
 
 cp $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-local.yml $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops.yml
@@ -135,8 +135,15 @@ fi
 # Get primary interface name
 # https://stackoverflow.com/questions/13322485/how-to-get-the-primary-ip-address-of-the-local-machine-on-linux-and-os-x
 
+# Get the current network interface and store it in a variable
+network_interface=$(ifconfig | grep -oE '^[a-zA-Z0-9]+' | head -n 1)
+
+# Print the network interface to verify
+echo "Current network interface: $network_interface"
+
 # Dynamically get the IP address of the local server
-LOCAL_IP=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
+LOCAL_IP=$(ip addr show $network_interface | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
+
 # ask for user password to be used for ansible_become_password and ansible_become_password
 read -sp "Please enter your password: " password
 
@@ -154,8 +161,8 @@ all:
               ansible_password: ${password}  # Replace with the ansible user's password
               ansible_become_password: ${password}   # Replace with the become (sudo) password
 
-              external_connection: eth0  # Connection name for the external connection
-              internal_connection: eth0  # Interface name for the internal lab network
+              external_connection: virbr0  # Connection name for the external connection
+              internal_connection: virbr0  # Interface name for the internal lab network
 
 EOF
 
@@ -179,9 +186,13 @@ sudo chown -R lab-user:lab-user "$EDA_DIR"
 
 # Set permissions of the directory to 0644
 sudo chmod 755 -R  "$EDA_DIR"
+sudo chown -R lab-user:lab-user /home/lab-user/workshop-build
+sudo chown -R lab-user:lab-user /home/lab-user/workshop-certs
 
 cd $HOME/device-edge-workshops/
-echo "ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @rhde_gitops.yml -m stdout -vvvv --become"
-#ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @rhde_gitops.yml -m stdout -vvvv --become
+#cp $HOME/rhde_gitops.yml $HOME/device-edge-workshops/extra-vars.yml
+# cp $HOME/manifest.zip  $HOME/device-edge-workshops/provisioner/
+echo "ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vvvv --become"
+#ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vvvv --become
 
-#ansible-navigator run provisioner/teardown_lab.yml --inventory local-inventory.yml --extra-vars @rhde_gitops.yml -m stdout -vvvv --become
+#ansible-navigator run provisioner/teardown_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vvvv --become
