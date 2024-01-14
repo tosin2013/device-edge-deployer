@@ -4,6 +4,12 @@
 # chmod +x configure-rhel8.x.sh
 # ./configure-rhel8.x.sh
 
+if [ -f .env ]; then
+    source .env
+else
+    echo "Please create a .env"
+    exit 1
+fi
 
 # Download the file using curl
 if [ ! -f $HOME/aap.tar.gz ];then 
@@ -142,6 +148,39 @@ all:
 
 EOF
 fi 
+# Check if the environment variables exist
+if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_DEFAULT_REGION" ]; then
+  echo "Missing required environment variables. Exiting..."
+  echo "Please set the following environment variables:"
+  echo "export AWS_ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
+  export AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY
+  export AWS_DEFAULT_REGION=us-east-2"
+  exit 1
+fi
+
+# Specify the directories
+CERTS_DIR="/home/${USER}/workshop-certs/training.sandbox1190.opentlc.com"
+EDA_DIR="/home/${USER}/workshop-build/eda"
+
+# Create the directories if they don't exist
+if [ ! -d "$CERTS_DIR" ]; then
+  sudo mkdir -p "$CERTS_DIR"
+fi
+
+if [ ! -d "$EDA_DIR" ]; then
+  sudo mkdir -p "$EDA_DIR"
+fi
+
+# Change ownership of the directories to root
+sudo chown -R root:root "$CERTS_DIR"
+sudo chown -R ${USER}:${USER} "$EDA_DIR"
+
+# Set permissions of the directory to 0644
+sudo chmod 755 -R  "$EDA_DIR"
+sudo chown -R ${USER}:${USER} /home/${USER}/workshop-build
+sudo chown -R ${USER}:${USER} /home/${USER}/workshop-certs
+
+cp $HOME/extra-vars.yml $HOME/device-edge-workshops/extra-vars.yml
 
 # Specify the directories
 CERTS_DIR="/home/${USER}/workshop-certs/training.sandbox1190.opentlc.com"
