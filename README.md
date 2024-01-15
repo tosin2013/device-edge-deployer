@@ -14,5 +14,6 @@ cd device-edge-deployer
 ```
 
 ```
+$ cd $HOME/device-edge-deployer
 $ ./device-edge-workshops/quickstart_script.sh
 ```

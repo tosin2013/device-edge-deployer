@@ -11,6 +11,12 @@ else
     exit 1
 fi
 
+if [ ! -f $HOME/extra-vars.yml ]; then
+    echo "Please create a $HOME/extra-vars.yml"
+    echo "https://github.com/redhat-manufacturing/device-edge-workshops/blob/gitops-demo/provisioner/example-extra-vars/rhde_gitops.yml"
+    exit 1
+fi
+
 # Download the file using curl
 if [ ! -f $HOME/aap.tar.gz ];then 
   cd $HOME
@@ -27,6 +33,7 @@ fi
 
 if [ ! -f $HOME/manifest.zip ];then 
   echo "Please place your manifest.zip file in your home directory"
+  echo "cp /tmp/manifest_tower-XXXXX.zip $HOME/manifest.zip"
   exit 1
 else 
     base64 $HOME/manifest.zip > base64_platform_manifest.txt || exit $?
@@ -121,7 +128,7 @@ all:
           hosts:
             edge-manager-local:
               ansible_host: ${LOCAL_IP}
-              ansible_user: ansible 
+              ansible_user: ${USER} 
               ansible_password:  ${password}
               ansible_become_password:  ${password}
 
@@ -152,14 +159,15 @@ fi
 if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_DEFAULT_REGION" ]; then
   echo "Missing required environment variables. Exiting..."
   echo "Please set the following environment variables:"
-  echo "export AWS_ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
+  echo "
+  export AWS_ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
   export AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY
   export AWS_DEFAULT_REGION=us-east-2"
   exit 1
 fi
 
 # Specify the directories
-CERTS_DIR="/home/${USER}/workshop-certs/training.sandbox1190.opentlc.com"
+CERTS_DIR="/home/${USER}/workshop-certs/training.${ROUTE53}.opentlc.com"
 EDA_DIR="/home/${USER}/workshop-build/eda"
 
 # Create the directories if they don't exist
@@ -207,8 +215,11 @@ sudo chown -R ${USER}:${USER} /home/${USER}/workshop-certs
 
 cp $HOME/extra-vars.yml $HOME/device-edge-workshops/extra-vars.yml
 cp $HOME/manifest.zip  $HOME/device-edge-workshops/provisioner/
-echo "cd $HOME/device-edge-workshops/"
-echo "ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vvvv --become"
+echo -e "cd $HOME/device-edge-workshops/\n"
+echo -e "ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vv --become"
 #ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vvvv --become
 
 #ansible-navigator run provisioner/teardown_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vvvv --become
+
+
+ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars "ansible_user=root" --extra-vars @extra-vars.yml -m stdout -vv --become

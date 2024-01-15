@@ -100,10 +100,11 @@ fi
 if [ ! -f /usr/bin/podman ]; then
   ./hack/partial-rpm-packages.sh
 else
-  if [ -f $HOME/.run/containers ]; 
+  if [ ! -f $HOME/.run/containers ]; 
   then 
     mkdir -p ~/.run/containers
-    podman system migrate
+    sudo mkdir -p /root/.run/containers
+    sudo podman system migrate
     sudo sysctl --system
   fi 
 fi
