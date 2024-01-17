@@ -96,10 +96,8 @@ read -p "Would you like to perform a internal or external workshop? (i/e): " wor
 if [[ $workshop_type == "i" ]]; then
   cp $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-local.yml $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops.yml || exit $?
 else
-  cp $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-external.yml $HOME/device-edge-workshops/provisioner/workshop_vars/rhde-gitops.yml || exit $?
+  cp $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-external.yml $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops.yml || exit $?
 fi
-
-$HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-external.yml $HOME/device-edge-workshops/provisioner/demo_vars/rhde_gitops.yml
 
 if [ ! -f $HOME/device-edge-workshops/provisioner/aap.tar.gz ]; then
   cp $HOME/aap.tar.gz $HOME/device-edge-workshops/provisioner/aap.tar.gz
@@ -130,11 +128,11 @@ all:
           hosts:
             edge-manager-local:
               ansible_host: ${LOCAL_IP}
-              ansible_user: cloud-user
+              ansible_user: ${USER} 
               ansible_password:  ${password}
               ansible_become_password:  ${password}
 
-              external_connection: eth0
+              external_connection: eth0 # Connection name for the external connection
               internal_connection: eth1 # Interface name for the internal lab network
 EOF
 elif [[ $workshop_type == "e" ]]; then
@@ -148,7 +146,7 @@ all:
           hosts:
             edge-manager-local:
               ansible_host: ${LOCAL_IP} # Replace with the IP address of your local server
-              ansible_user: cloud-user # Replace with the appropriate username
+              ansible_user: ${USER} # Replace with the appropriate username
               ansible_password: ${password}  # Replace with the ansible user's password
               ansible_become_password: ${password}   # Replace with the become (sudo) password
 
@@ -158,7 +156,6 @@ all:
 EOF
 fi 
 # Check if the environment variables exist
-source .env
 if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_DEFAULT_REGION" ]; then
   echo "Missing required environment variables. Exiting..."
   echo "Please set the following environment variables:"
@@ -170,7 +167,7 @@ if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_
 fi
 
 # Specify the directories
-CERTS_DIR="/home/${USER}/workshop-certs/external.${ROUTE53}.opentlc.com"
+CERTS_DIR="/home/${USER}/workshop-certs/training.${ROUTE53}.opentlc.com"
 EDA_DIR="/home/${USER}/workshop-build/eda"
 
 # Create the directories if they don't exist
@@ -226,70 +223,3 @@ echo -e "ansible-navigator run provisioner/provision_lab.yml --inventory local-i
 
 
 #ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars "ansible_user=root" --extra-vars @extra-vars.yml -m stdout -vv --become
-
-
-
-#### EXTERNAL Mode
-* Failed on first run 
-* Failed n second run
-* On third 
-```
-run TASK [../roles/workshop_local_network : add nm conn for workshop] **************
-task path: /root/device-edge-workshops/roles/workshop_local_network/tasks/setup-connection.yml:27
-fatal: [edge-manager-local]: FAILED! => {"changed": false, "msg": "Error: Connection activation failed: No suitable device found for this connection (device eno1 not available because profile is not compatible with device (mismatching interface name)).\n", "name": "rhde_gitops-workshop", "rc": 4}
-
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
-       valid_lft forever preferred_lft forever
-2: eno1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
-    link/ether 3c:ec:ef:72:01:86 brd ff:ff:ff:ff:ff:ff
-    altname enp4s0
-3: eno2: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN group default qlen 1000
-    link/ether 3c:ec:ef:72:01:87 brd ff:ff:ff:ff:ff:ff
-    altname enp5s0
-4: enp2s0f0: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP> mtu 1500 qdisc mq master bond0 state UP group default qlen 1000
-    link/ether 04:3f:72:d7:6e:f2 brd ff:ff:ff:ff:ff:ff
-5: enp2s0f1: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP> mtu 1500 qdisc mq master bond0 state UP group default qlen 1000
-    link/ether 04:3f:72:d7:6e:f2 brd ff:ff:ff:ff:ff:ff permaddr 04:3f:72:d7:6e:f3
-6: bond0: <BROADCAST,MULTICAST,MASTER,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
-    link/ether 04:3f:72:d7:6e:f2 brd ff:ff:ff:ff:ff:ff
-    inet 147.28.151.239/31 scope global noprefixroute bond0
-       valid_lft forever preferred_lft forever
-    inet 10.68.72.129/31 scope global noprefixroute bond0:0
-       valid_lft forever preferred_lft forever
-    inet6 2604:1380:45f1:7000::1/127 scope global noprefixroute
-       valid_lft forever preferred_lft forever
-    inet6 fe80::63f:72ff:fed7:6ef2/64 scope link noprefixroute
-       valid_lft forever preferred_lft forever
-7: cni-podman0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
-    link/ether b2:16:8f:95:4f:5a brd ff:ff:ff:ff:ff:ff
-    inet 10.88.0.1/16 brd 10.88.255.255 scope global cni-podman0
-       valid_lft forever preferred_lft forever
-    inet6 fe80::b016:8fff:fe95:4f5a/64 scope link
-       valid_lft forever preferred_lft forever
-10: virbr0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
-    link/ether 52:54:00:3d:02:f7 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.122.1/24 brd 192.168.122.255 scope global virbr0
-       valid_lft forever preferred_lft forever
-
-
-cat local-inventory.yml
----
-all:
-  children:
-    local:
-      children:
-        edge_local_management:
-          hosts:
-            edge-manager-local:
-              ansible_host: 44.55.55.10 # Replace with the IP address of your local server
-              ansible_user: lab-user # Replace with the appropriate username
-              ansible_password: change  # Replace with the ansible user's password
-              ansible_become_password: change   # Replace with the become (sudo) password
-
-              external_connection: bond0  # Connection name for the external connection
-              internal_connection: bond0  # Interface name for the internal lab network
-
-```
