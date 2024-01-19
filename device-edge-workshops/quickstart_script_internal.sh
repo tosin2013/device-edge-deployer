@@ -4,6 +4,8 @@
 # chmod +x configure-rhel8.x.sh
 # ./configure-rhel8.x.sh
 
+GIT_REPO_OWNER="tosin2013" # redhat-manufacturing
+BRANCH_NAME="gitops-demo"
 if [ -f .env ]; then
     source .env
 else
@@ -13,7 +15,7 @@ fi
 
 if [ ! -f $HOME/extra-vars.yml ]; then
     echo "Please create a $HOME/extra-vars.yml"
-    echo "https://github.com/redhat-manufacturing/device-edge-workshops/blob/gitops-demo/provisioner/example-extra-vars/rhde_gitops.yml"
+    echo "https://github.com/${GIT_REPO_OWNER}/device-edge-workshops/blob/gitops-demo/provisioner/example-extra-vars/rhde_gitops.yml"
     exit 1
 fi
 
@@ -71,8 +73,9 @@ fi
 
 if [ ! -d $HOME/device-edge-workshops ]; then
     cd $HOME
-    git clone https://github.com/redhat-manufacturing/device-edge-workshops.git
+    git clone https://github.com/${GIT_REPO_OWNER}/device-edge-workshops.git
     cd $HOME/device-edge-workshops
+    git checkout ${BRANCH_NAME}
 else
     cd $HOME/device-edge-workshops
     git pull
@@ -81,7 +84,7 @@ fi
 if [ ! -f $HOME/extra-vars.yml ]; then
     echo "$HOME/extra-vars.yml not found. Exiting..."
     echo "See The link below for more information"
-    echo "https://raw.githubusercontent.com/redhat-manufacturing/device-edge-workshops/gitops-demo/provisioner/example-extra-vars/rhde_gitops.yml"
+    echo "https://raw.githubusercontent.com/${GIT_REPO_OWNER}/device-edge-workshops/gitops-demo/provisioner/example-extra-vars/rhde_gitops.yml"
 fi
 
 # if ec2-user does not exist on your local server, create it
@@ -94,7 +97,7 @@ fi
 # Ask user would you like to perform a internal or external workshop
 read -p "Would you like to perform a internal or external workshop? (i/e): " workshop_type
 if [[ $workshop_type == "i" ]]; then
-  cp $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-local.yml $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops.yml || exit $?
+  cp $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-local.yml $HOME/device-edge-workshops/provisioner/demo_vars/rhde_gitops.yml || exit $?
 else
   cp $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops-external.yml $HOME/device-edge-workshops/provisioner/workshop_vars/rhde_gitops.yml || exit $?
 fi
