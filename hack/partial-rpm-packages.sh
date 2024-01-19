@@ -28,7 +28,9 @@ sudo dnf -y install \
   fuse-overlayfs \
   containernetworking-plugins \
   iputils \
-  iproute
+  iproute \
+  net-tools \
+  bind-utils 
 
 sudo dnf -y groupinstall "Development Tools"
 
