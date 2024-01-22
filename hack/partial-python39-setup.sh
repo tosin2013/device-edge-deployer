@@ -16,4 +16,4 @@
 # - For Ansible-Navigator
 curl -sSL https://raw.githubusercontent.com/ansible/ansible-navigator/main/requirements.txt | python3 -m pip install -r /dev/stdin
 # - For Ansible Collections running on the bastion?
-python3 -m pip install -r $HOME/device-edge-deployer/hack/bastion-requirements.txt
+sudo python3 -m pip install -r $HOME/device-edge-deployer/hack/bastion-requirements.txt

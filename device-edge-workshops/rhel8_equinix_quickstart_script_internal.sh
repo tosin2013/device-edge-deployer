@@ -18,6 +18,8 @@ if [ ! -f $HOME/extra-vars.yml ]; then
     exit 1
 fi
 
+subscription-manager list --available --all | grep "Ansible Automation Platform" -B 3 -A 6
+
 # Download the file using curl
 if [ ! -f $HOME/aap.tar.gz ];then 
   cd $HOME
@@ -207,14 +209,24 @@ sudo chmod 755 -R  "$EDA_DIR"
 sudo chown -R ${USER}:${USER} /home/${USER}/workshop-build
 sudo chown -R ${USER}:${USER} /home/${USER}/workshop-certs
 
+# ADD build_dir: "/home/{{ ansible_user }}/workshop-build" to extra-vars.yml
 
 cp $HOME/extra-vars.yml $HOME/device-edge-workshops/extra-vars.yml
 cp $HOME/manifest.zip  $HOME/device-edge-workshops/provisioner/
+sudo cp /home/cloud-user/.vault_password  /home/cloud-user/device-edge-workshops/
+echo -e ""
 echo -e "cd $HOME/device-edge-workshops/\n"
-echo -e "ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml --extra-vars='equinox_int=true' -m stdout -vv --become"
+echo -e "source ~/device-edge-deployer/.env"
+echo -e "sudo -E /home/cloud-user/.local/bin/ansible-navigator  run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml --extra-vars='equinox_int=true' --extra-vars 'edge_management_ext_ip=CHANGE_IP' -m stdout -vv --become"
 #ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vvvv --become
 
 #ansible-navigator run provisioner/teardown_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vvvv --become
 
 
 #ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars "ansible_user=root" --extra-vars @extra-vars.yml -m stdout -vv --become
+
+#To-Do 
+#  cp ~/.vault_password .
+#subscription-manager list --available --all | grep "Ansible Automation Platform" -B 3 -A 6
+#subscription-manager attach --pool=POOL_ID 
+# sudo chown -R lab-user:users /home/lab-user/workshop-build/

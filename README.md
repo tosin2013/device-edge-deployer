@@ -11,5 +11,5 @@ cd device-edge-deployer
 ```
 
 $ cd $HOME/device-edge-deployer
-$ ./device-edge-workshops/quickstart_script.sh
+$ ./device-edge-workshops/rhel8_equinix_quickstart_script_internal.sh
 ```
