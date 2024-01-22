@@ -206,8 +206,8 @@ sudo chown -R ${USER}:${USER} "$EDA_DIR"
 
 # Set permissions of the directory to 0644
 sudo chmod 755 -R  "$EDA_DIR"
-sudo chown -R ${USER}:${USER} /home/${USER}/workshop-build
-sudo chown -R ${USER}:${USER} /home/${USER}/workshop-certs
+sudo chown -R ${USER}:users /home/${USER}/workshop-build
+sudo chown -R ${USER}:users /home/${USER}/workshop-certs
 
 # ADD build_dir: "/home/{{ ansible_user }}/workshop-build" to extra-vars.yml
 
@@ -227,6 +227,7 @@ echo -e "sudo -E /home/cloud-user/.local/bin/ansible-navigator  run provisioner/
 
 #To-Do 
 #  cp ~/.vault_password .
-#subscription-manager list --available --all | grep "Ansible Automation Platform" -B 3 -A 6
+# subscription-manager list --available --all | grep "Ansible Automation Platform" -B 3 -A 6
 #subscription-manager attach --pool=POOL_ID 
+# sudo mkdir -p /home/lab-user/workshop-build/
 # sudo chown -R lab-user:users /home/lab-user/workshop-build/
