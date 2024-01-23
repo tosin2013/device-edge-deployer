@@ -65,3 +65,9 @@ python3 -m pip install kubernetes
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash
 sudo mv kustomize /usr/local/bin/
+
+#echo "configureing tmux"
+git clone --recursive https://github.com/tony/tmux-config.git ~/.tmux
+ln -s ~/.tmux/.tmux.conf ~/.tmux.conf
+echo "source \"/usr/local/lib/python3.9/site-packages/powerline/bindings/tmux/powerline.conf"\" >> ~/.tmux.conf
+echo "set -g mouse on"  >> ~/.tmux.conf
