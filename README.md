@@ -1,6 +1,12 @@
 # Device Edge Deployer 
 
 
+### Pre-requisites
+```
+# subscription-manager list --available --all | grep "Ansible Automation Platform" -B 3 -A 6
+# subscription-manager attach --pool=POOL_ID 
+```
+
 ```
 sudo su - 
 git clone https://github.com/tosin2013/device-edge-deployer.git

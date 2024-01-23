@@ -18,8 +18,6 @@ if [ ! -f $HOME/extra-vars.yml ]; then
     exit 1
 fi
 
-subscription-manager list --available --all | grep "Ansible Automation Platform" -B 3 -A 6
-
 # Download the file using curl
 if [ ! -f $HOME/aap.tar.gz ];then 
   cd $HOME
@@ -125,7 +123,7 @@ all:
           hosts:
             edge-manager-local:
               ansible_host: ${LOCAL_IP}
-              ansible_user: ${USER} 
+              ansible_user: lab-user
               ansible_password:  ${password}
               ansible_become_password:  ${password}
 
@@ -210,7 +208,8 @@ sudo chown -R ${USER}:users /home/${USER}/workshop-build
 sudo chown -R ${USER}:users /home/${USER}/workshop-certs
 
 # ADD build_dir: "/home/{{ ansible_user }}/workshop-build" to extra-vars.yml
-
+sudo mkdir -p /home/lab-user/workshop-build/
+sudo chown -R lab-user:users /home/lab-user/workshop-build/
 cp $HOME/extra-vars.yml $HOME/device-edge-workshops/extra-vars.yml
 cp $HOME/manifest.zip  $HOME/device-edge-workshops/provisioner/
 sudo cp /home/cloud-user/.vault_password  /home/cloud-user/device-edge-workshops/
@@ -229,5 +228,3 @@ echo -e "sudo -E /home/cloud-user/.local/bin/ansible-navigator  run provisioner/
 #  cp ~/.vault_password .
 # subscription-manager list --available --all | grep "Ansible Automation Platform" -B 3 -A 6
 #subscription-manager attach --pool=POOL_ID 
-# sudo mkdir -p /home/lab-user/workshop-build/
-# sudo chown -R lab-user:users /home/lab-user/workshop-build/
