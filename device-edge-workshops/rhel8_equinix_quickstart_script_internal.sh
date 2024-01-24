@@ -123,12 +123,12 @@ all:
           hosts:
             edge-manager-local:
               ansible_host: ${LOCAL_IP}
-              ansible_user: lab-user
+              ansible_user: ${USER}
               ansible_password:  ${password}
               ansible_become_password:  ${password}
 
-              external_connection: bond0 # Connection name for the external connection
-              internal_connection: internal-net # Interface name for the internal lab network
+              external_connection: eth0 # Connection name for the external connection
+              internal_connection: eth1 # Interface name for the internal lab network
 EOF
 elif [[ $workshop_type == "e" ]]; then
 cat > $HOME/device-edge-workshops/local-inventory.yml<<EOF
@@ -208,15 +208,15 @@ sudo chown -R ${USER}:users /home/${USER}/workshop-build
 sudo chown -R ${USER}:users /home/${USER}/workshop-certs
 
 # ADD build_dir: "/home/{{ ansible_user }}/workshop-build" to extra-vars.yml
-sudo mkdir -p /home/lab-user/workshop-build/
-sudo chown -R lab-user:users /home/lab-user/workshop-build/
+sudo mkdir -p /home/${USER}/workshop-build/
+sudo chown -R ${USER}:users /home/${USER}/workshop-build/
 cp $HOME/extra-vars.yml $HOME/device-edge-workshops/extra-vars.yml
 cp $HOME/manifest.zip  $HOME/device-edge-workshops/provisioner/
-sudo cp /home/cloud-user/.vault_password  /home/cloud-user/device-edge-workshops/
+sudo cp $HOME/.vault_password  $HOME/device-edge-workshops/
 echo -e ""
 echo -e "cd $HOME/device-edge-workshops/\n"
 echo -e "source ~/device-edge-deployer/.env"
-echo -e "sudo -E /home/cloud-user/.local/bin/ansible-navigator  run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml --extra-vars='equinox_int=true' --extra-vars 'edge_management_ext_ip=CHANGE_IP' -m stdout -vv --become"
+echo -e "sudo -E /usr/local/bin/ansible-navigator  run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml --extra-vars='equinox_int=true' --extra-vars 'edge_management_ext_ip=${LOCAL_IP}' -m stdout -vv --become"
 #ansible-navigator run provisioner/provision_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vvvv --become
 
 #ansible-navigator run provisioner/teardown_lab.yml --inventory local-inventory.yml --extra-vars @extra-vars.yml -m stdout -vvvv --become

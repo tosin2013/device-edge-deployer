@@ -3,6 +3,8 @@
 
 ### Pre-requisites
 ```
+# sudo subscription-manager register
+# sudo subscription-manager refresh
 # subscription-manager list --available --all | grep "Ansible Automation Platform" -B 3 -A 6
 # subscription-manager attach --pool=POOL_ID 
 ```
