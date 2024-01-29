@@ -19,5 +19,11 @@ cd device-edge-deployer
 ```
 
 $ cd $HOME/device-edge-deployer
+$ cp /tmp/baremetal-playbooks/env-tempate.txt .
+$ cp /tmp/baremetal-playbooks/extra-vars.yml /home/cloud-user/extra-vars.yml
+$ ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa -N ''
+$ vim /home/cloud-user/extra-vars.yml
+$ ssh-copy-id $USER@192.168.1.10
+$ cp /tmp/baremetal-playbooks/manifest.zip ~/
 $ ./device-edge-workshops/rhel8_equinix_quickstart_script_internal.sh
 ```
